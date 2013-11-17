@@ -1,0 +1,52 @@
+
+
+const methods_A
+  :A.run
+
+func Main()
+  t.0 = HeapAllocZ(4)
+  [t.0+0] = :methods_A
+  if t.0 goto :null0
+    Error("null pointer")
+  null0:
+  t.1 = t.0
+
+  t.2 = [t.1+0]
+  t.3 = [t.2+0]
+  t.4 = call t.3(t.1)
+  PrintIntS(t.4)
+  ret
+
+func A.run(this )
+
+  t.0 = 20
+  t.1 = call :AllocArray(t.0)
+  a = t.1
+  t.2 = a
+  t.3 = 10
+  t.4 = [t.2+0]
+  t.4 = LtS(t.3 t.4)
+  if t.4 goto :bounds0
+    Error("array index out of bounds")
+  bounds0:
+  t.3 = MulS(t.3 4)
+  t.2 = Add(t.2 t.3)
+  t.5 = [t.2+4]
+  PrintIntS(t.5)
+  t.6 = a
+  t.7 = 40
+  t.8 = [t.6+0]
+  t.8 = LtS(t.7 t.8)
+  if t.8 goto :bounds1
+    Error("array index out of bounds")
+  bounds1:
+  t.7 = MulS(t.7 4)
+  t.6 = Add(t.6 t.7)
+  t.9 = [t.6+4]
+  ret t.9
+func AllocArray(size)
+  bytes = MulS(size 4)
+  bytes = Add(bytes 4)
+  v = HeapAllocZ(bytes)
+  [v] = size
+  ret v
