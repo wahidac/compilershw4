@@ -168,7 +168,7 @@ public class InitCFG extends VInstr.VisitorP<CFGNode,Throwable>  {
 			n.use.add(arg1.source.toString());
 		}
 		
-		//Handle case in which base address is in a variable
+		//Handle case in which base address is in a variable.
 		if(arg1.dest instanceof VMemRef.Global) {
 			VMemRef.Global ref = (VMemRef.Global)arg1.dest;
 			String baseAddr = variableFromMemAddress(ref.base);

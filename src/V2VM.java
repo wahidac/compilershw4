@@ -108,7 +108,9 @@ public class V2VM {
 			  
 			  System.out.println(dataSection);
 			  */
+			  CalcLiveInLiveOutSets liveInLiveOutCalculator =  new CalcLiveInLiveOutSets(initCFGVisitor.CFGs, initCFGVisitor.instructionsToCFGNode, program);
 			  initCFGVisitor.printCFG();
+			  
 			  return program;
 			}
 	
