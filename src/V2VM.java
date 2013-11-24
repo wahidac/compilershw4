@@ -108,6 +108,7 @@ public class V2VM {
 			  
 			  System.out.println(dataSection);
 			  */
+			  initCFGVisitor.printCFG();
 			  return program;
 			}
 	

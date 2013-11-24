@@ -5,6 +5,7 @@ import cs132.vapor.ast.VAssign;
 import cs132.vapor.ast.VBranch;
 import cs132.vapor.ast.VBuiltIn;
 import cs132.vapor.ast.VCall;
+import cs132.vapor.ast.VCodeLabel;
 import cs132.vapor.ast.VFunction;
 import cs132.vapor.ast.VGoto;
 import cs132.vapor.ast.VInstr;
@@ -24,14 +25,15 @@ public class InitCFG extends VInstr.VisitorP<CFGNode,Throwable>  {
 	HashMap <String,CFGNode> CFGs;
 	//Map instructions to CFGs
 	HashMap <VInstr,CFGNode> instructionsToCFGNode;
+	VaporProgram program;
 	
 	public InitCFG(VaporProgram program) throws Throwable {
 		CFGs = new HashMap<String,CFGNode>();
 		instructionsToCFGNode = new HashMap<VInstr,CFGNode>();
-		
-		CFGNode prev = null;
+		this.program = program;
 		for(VFunction func:program.functions) {
 			CFGNode root;
+			CFGNode prev = null;
 			for(int i = 0; i < func.body.length; i++) {
 				CFGNode n = new CFGNode(func,func.body[i]);
 				instructionsToCFGNode.put(func.body[i], n);
@@ -46,10 +48,55 @@ public class InitCFG extends VInstr.VisitorP<CFGNode,Throwable>  {
 				} 
 				prev = n;
 			}			
+			
+			//Now add in extra edges by looking at goto statements. 
+			for(int i = 0; i < func.body.length; i++) {
+				//Goto's appear in goto statements and branches. A goto 
+				VInstr instr = func.body[i];
+				CFGNode n = instructionsToCFGNode.get(instr);
+				if(instr instanceof VBranch) {
+					VBranch branch = (VBranch)instr;
+					int targetInstructionIndex = branch.target.getTarget().instrIndex;
+					VInstr targetInstruction = func.body[targetInstructionIndex];
+					//Get the CFG Node associated with this instruction
+					CFGNode targetNode = instructionsToCFGNode.get(targetInstruction);
+					assert(targetNode != null);
+					//Add an edge from this node to the target node
+					n.successors.add(targetNode);
+				} else if(instr instanceof VGoto) {
+					VGoto gotoInstr = (VGoto)instr;
+					VAddr<VCodeLabel> address = gotoInstr.target;
+					if(address instanceof VAddr.Label<?>) {
+						//A static label, so we know where this goto will lead to
+						VAddr.Label<VCodeLabel> label = (VAddr.Label<VCodeLabel>) address;
+						int targetInstructionIndex = label.label.getTarget().instrIndex;
+						VInstr targetInstruction = func.body[targetInstructionIndex];
+						//Get the CFG Node associated with this instruction
+						CFGNode targetNode = instructionsToCFGNode.get(targetInstruction);
+						assert(targetNode != null);
+						//Add an edge from this node to the target node
+						n.successors.add(targetNode);
+					} else if(address instanceof VAddr.Var<?>) {
+						//Address is stored inside a variable
+						//Can't at compile time know all labels this goto may go to so 
+						//add an edge between this node and all labels in this function
+						//NOTE: if considering scope of whole program, need to look at all gotos
+						
+						//Iterate through all labels in this function
+						for(VCodeLabel l:func.labels) {
+							int targetInstructionIndex = l.instrIndex;
+							VInstr targetInstruction = func.body[targetInstructionIndex];
+							//Get the CFG Node associated with this instruction
+							CFGNode targetNode = instructionsToCFGNode.get(targetInstruction);
+							assert(targetNode != null);
+							//Add an edge from this node to the target node
+							n.successors.add(targetNode);
+						}
+					}
+				}
+			}
 		
-		}
-		
-		//Now add in extra edges by looking at goto statements
+		}	
 	}
 	
 	public static boolean isOperandVariable(VOperand operand) {
@@ -92,6 +139,11 @@ public class InitCFG extends VInstr.VisitorP<CFGNode,Throwable>  {
 			n.def.add(arg1.dest.toString());
 		}
 		
+		//May be using a variable to call the actual function
+		String fun = variableFromMemAddress(arg1.addr);
+		if(fun != null) {
+			n.use.add(fun);
+		}
 	}
 
 
@@ -167,6 +219,62 @@ public class InitCFG extends VInstr.VisitorP<CFGNode,Throwable>  {
 			n.use.add(arg1.value.toString());
 		}
 		
+	}
+	
+	//For debugging
+	public static void printCFGNode(CFGNode currentNode, int startLineNum) {
+		System.out.println("-------------------------------------------------------------------------------------");
+		System.out.println("Node: " + currentNode.instruction.toString() + " at line: " + (currentNode.instruction.sourcePos.line - startLineNum));
+		String useSet = "{ ";
+		for(String var:currentNode.use) {
+			useSet += " " + var;
+		}
+		useSet += " }";
+		System.out.println("Use Set: " + useSet);
+		
+		String defSet = "{ ";
+		for(String var:currentNode.def) {
+			defSet += " " + var;
+		}
+		defSet += " }";
+		System.out.println("Def Set: " + defSet);
+		
+		
+		String liveIn = "{ ";
+		for(String var:currentNode.liveIn) {
+			liveIn += " " + var;
+		}
+		liveIn += " }";
+		System.out.println("Live-In: " + liveIn);
+
+		String liveOut = "{ ";
+		for(String var:currentNode.liveOut) {
+			liveOut += " " + var;
+		}
+		liveOut += " }";
+		System.out.println("Live-Out: " + liveOut);
+		
+		
+		String successors = "{ ";
+		for(CFGNode n:currentNode.successors) {
+			successors += " " + n.instruction.toString() + " at line: " + (n.instruction.sourcePos.line - startLineNum) + ',';
+		}
+		successors += " }";
+		System.out.println("Successors: " + successors);
+		System.out.println("-------------------------------------------------------------------------------------\n");
+		
+	}
+	
+	//For debugging 
+	public void printCFG() {
+		for(VFunction func:program.functions) {
+			System.out.println(func.ident + ":\n");
+			for(int i = 0; i < func.body.length; i++) {
+				CFGNode n = instructionsToCFGNode.get(func.body[i]);
+				printCFGNode(n,0);
+			}
+
+		}
 	}
 
 }
