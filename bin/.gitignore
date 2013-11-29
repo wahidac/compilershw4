@@ -7,3 +7,6 @@
 /CFGNode.class
 /InitCFG.class
 /CalcLiveInLiveOutSets.class
+/CalcLiveRanges.class
+/LiveRange.class
+/LiveRanges.class
