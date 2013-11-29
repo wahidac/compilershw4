@@ -1,4 +1,5 @@
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 import cs132.vapor.ast.VFunction;
 import cs132.vapor.ast.VInstr;
@@ -25,7 +26,7 @@ public class CFGNode {
 		def = new HashSet<String>();
 		liveIn = new HashSet<String>();
 		liveOut = new HashSet<String>();
-		successors = new HashSet<CFGNode>();
+		successors = new LinkedHashSet<CFGNode>();
 		this.instruction = instruction;
 		this.lineNum = instruction.sourcePos.line;
 		this.function = func;

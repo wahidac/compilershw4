@@ -11,14 +11,14 @@ public class LiveRanges {
 	//Represent ranges as a set of range tuples
 	//so a live range of 1-->2-->3--->4-->5-->2 will
 	//be represented like {(1,2),(2,3),(3,4),(4,5),(5,2)}
-	LinkedHashSet<int[]> ranges;
+	LinkedHashSet<RangeTuple> ranges;
 	
 	public LiveRanges() {
-		ranges = new LinkedHashSet<int[]>();
+		ranges = new LinkedHashSet<RangeTuple>();
 	}
 	
 	public void addEdge(int lineStart, int lineEnd) {
-		int []edge = {lineStart,lineEnd};
+		RangeTuple edge = new RangeTuple(lineStart, lineEnd);
 		this.ranges.add(edge);
 	}
 	
@@ -26,7 +26,7 @@ public class LiveRanges {
 	//we're checking whether a conflict exists cannot simultaneously be
 	//in the same register as this variable
 	public boolean rangeConflict(LiveRanges other) {
-		for(int []edge:other.ranges) {
+		for(RangeTuple edge:other.ranges) {
 			if(ranges.contains(edge)) {
 				return true;
 			}

@@ -82,15 +82,19 @@ public class CalcLiveRanges {
 			for(Entry<String, LiveRanges> entry:ranges.entrySet()) {
 				String var = entry.getKey();
 				LiveRanges l = entry.getValue();
-				String set = var + "= { ";
-				LinkedHashSet<int[]> tuples = l.ranges;
-				for(int[] tuple:tuples) {
-					set += " " + String.valueOf(tuple[0]) + " -> " + String.valueOf(tuple[1]) + ",";
-				}
-				set = set + " }";
-				System.out.println(set);
+				printLiveRanges(var, l);
 			}
 		}
+	}
+	
+	public static void printLiveRanges(String variable, LiveRanges l) {
+		String set = variable + "= { ";
+		LinkedHashSet<RangeTuple> tuples = l.ranges;
+		for(RangeTuple tuple:tuples) {
+			set += " " + String.valueOf(tuple.lineStart) + " -> " + String.valueOf(tuple.lineEnd) + ",";
+		}
+		set = set + " }";
+		System.out.println(set);
 	}
 				
 }

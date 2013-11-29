@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import cs132.util.ProblemException;
 import cs132.vapor.parser.VaporParser;
@@ -112,9 +113,10 @@ public class V2VM {
 			  CalcLiveInLiveOutSets liveInLiveOutCalculator =  new CalcLiveInLiveOutSets(initCFGVisitor.CFGs, initCFGVisitor.instructionsToCFGNode, program);
 			  CalcLiveRanges rangeCalculator = new CalcLiveRanges(liveInLiveOutCalculator.CFGs, initCFGVisitor.instructionsToCFGNode, program);
 			  HashMap<String,HashMap<String,LiveRanges>> ranges = rangeCalculator.liveRanges;
-			  rangeCalculator.printLiveRanges();
-			  initCFGVisitor.printCFG();
-			  
+			  //initCFGVisitor.printCFG();
+			  //rangeCalculator.printLiveRanges();
+			  RegisterAllocator regAllocater = new RegisterAllocator(ranges);
+		
 			  
 			  return program;
 			}
