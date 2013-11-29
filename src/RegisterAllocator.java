@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -20,24 +21,30 @@ public class RegisterAllocator {
 	  //back-up val before writing to the register. if caller, 
 	  //check live out to see whether necessary to back-up
 	  HashMap<String,HashMap<String,String>> registerAssignments;
-	  HashMap<String, HashSet<String>> spilledVariables;
+	  HashMap<String, ArrayList<String>> spilledVariables;
 	  
-	  String [] spillRegisters;
+
 	  String [] calleeSaved;
 	  String [] callerSaved;
-	  String [] arguments;
+	  
+	  public static String registerType(String reg) {
+		  if(reg.startsWith("$t")) {
+			  return "CALLER_SAVED";
+		  } else if(reg.startsWith("$s")) {
+			  return "CALLEE_SAVED";
+		  } else {
+			  return "NONE";
+		  }
+	  }
 	  
 	  public RegisterAllocator(HashMap<String,HashMap<String,LiveRanges>> ranges) {
 		  	this.ranges = ranges;
-		  	spilledVariables = new HashMap<String, HashSet<String>>();
+		  	spilledVariables = new HashMap<String, ArrayList<String>>();
 		  	registerAssignments = new HashMap<String,HashMap<String,String>>();
-		  
-		    //Because only two operand operators in Vapor
-			spillRegisters = new String[3];
-			calleeSaved = new String[8];
+
+		  	calleeSaved = new String[1];
 			//Reserve register $t1 to use for spilling 
-			callerSaved = new String[8];
-			arguments = new String[4];
+			callerSaved = new String[1];
 			
 			String prefix = "$s";
 			for(int i = 0; i < calleeSaved.length; i++) {
@@ -47,28 +54,19 @@ public class RegisterAllocator {
 			for(int i = 0; i < callerSaved.length; i++) {
 				callerSaved[i] = prefix + String.valueOf(i+1);
 			}
-			
-			prefix = "$a";
-			for(int i = 0; i < arguments.length; i++) {
-				arguments[i] = prefix + String.valueOf(i);
-			}
-			
-			spillRegisters[0] = "$v0";
-			spillRegisters[1] = "$v1";
-			spillRegisters[2] = "t0";
-			
-			
+				
 			//Assign registers
 			for(Entry<String, HashMap<String,LiveRanges>> entry:ranges.entrySet()) {
 				HashMap<String,LiveRanges> r = entry.getValue();
-				HashSet<String> spilledVariables = new HashSet<String>();
+				ArrayList<String> spilledVariables = new ArrayList<String>();
 				System.out.println("Allocation for function " + entry.getKey());
-				assignRegisters(r, spilledVariables);
+				HashMap<String,String> assignments = assignRegisters(r, spilledVariables);
 				this.spilledVariables.put(entry.getKey(), spilledVariables);
+				this.registerAssignments.put(entry.getKey(), assignments);
 			}
 	  }
 	  
-	  public void assignRegisters(HashMap<String,LiveRanges> r, HashSet<String> spilledVariables) {
+	  public HashMap<String,String> assignRegisters(HashMap<String,LiveRanges> r, ArrayList<String> spilledVariables) {
 		  LinkedHashSet<String> freeRegisterPool = new LinkedHashSet<String>();
 		  HashMap<String,String> assignedRegisters = new HashMap<String,String>();
 		  
@@ -138,12 +136,14 @@ public class RegisterAllocator {
 					  spilledVariables.add(maxVar);
 					  //No longer need to consider live ranges for this var
 					  r.remove(maxVar);
-					  assignRegisters(r, spilledVariables);
-					  return;
+					  assignedRegisters = assignRegisters(r, spilledVariables);
+					  return assignedRegisters;
 				  }
 			  }
 			  
 		  }
+		  
+		  return assignedRegisters;
 		  
 	  }
 

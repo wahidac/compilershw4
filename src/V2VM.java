@@ -83,41 +83,42 @@ public class V2VM {
 				e.printStackTrace();
 			  }
 			  
-			  
-			 /* //Go through functions now.
-			  String functions = "";
-			  SpillAllFieldsVisitor spillFieldsVisitor = new SpillAllFieldsVisitor();
-			  for(VFunction func:program.functions) {
-				  //Function declaration
-				  String currentFunction = "func " + func.ident;
-				  
-				  int stackSize = func.vars.length;
-				  //Allocate mem for local based on how many local variables appear
-				  currentFunction += " [in 0, out 0, local " + String.valueOf(stackSize) + "]";
-				  for(VInstr instruction:func.body) {
-					  //For each instruction, run our spill visitor to generate code that should substitute what is in input file
-					  //  functions += 
-					  try {
-						String vaporMCode = instruction.accept(1,spillFieldsVisitor);
-					} catch (Throwable e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					  
-				  }
-
-			  }
-			  
-			  System.out.println(dataSection);
-			  */
+		
 			  CalcLiveInLiveOutSets liveInLiveOutCalculator =  new CalcLiveInLiveOutSets(initCFGVisitor.CFGs, initCFGVisitor.instructionsToCFGNode, program);
 			  CalcLiveRanges rangeCalculator = new CalcLiveRanges(liveInLiveOutCalculator.CFGs, initCFGVisitor.instructionsToCFGNode, program);
 			  HashMap<String,HashMap<String,LiveRanges>> ranges = rangeCalculator.liveRanges;
 			  //initCFGVisitor.printCFG();
 			  //rangeCalculator.printLiveRanges();
 			  RegisterAllocator regAllocater = new RegisterAllocator(ranges);
-		
 			  
+			   //Go through functions now.
+			  String functions = "";
+			  PrintAST printASTVisitor = new PrintAST(regAllocater.registerAssignments,regAllocater.spilledVariables);
+			  for(VFunction func:program.functions) {
+				  //Function declaration
+				  String currentFunction = "func " + func.ident;
+				  printASTVisitor.currentFunction = func.ident;
+				  int stackSize = func.vars.length;
+				  //Allocate mem for local based on how many spilled variables there are
+				  currentFunction += " [in 0, out 0, local " + String.valueOf(stackSize) + "]";
+				  for(VInstr instruction:func.body) {
+					  //For each instruction, run our spill visitor to generate code that should substitute what is in input file
+					  //  functions += 
+					  try {
+						String vaporMCode = instruction.accept(1,printASTVisitor);
+						currentFunction = concatentateInstructions(currentFunction, vaporMCode);
+					} catch (Throwable e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					  
+				  }
+				  
+				  functions = concatentateInstructions(functions, currentFunction);
+
+			  }
+			  
+			  System.out.println(functions);
 			  return program;
 			}
 	

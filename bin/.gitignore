@@ -12,3 +12,4 @@
 /LiveRanges.class
 /RegisterAllocator.class
 /RangeTuple.class
+/PrintAST.class
