@@ -15,6 +15,7 @@ public class CFGNode {
 	HashSet<String> liveIn;
 	HashSet<String> liveOut;
 	VInstr instruction;
+	int lineNum;
 	VFunction function;
 	//Instructions that can be directly reached from this node
 	HashSet<CFGNode> successors;
@@ -26,6 +27,7 @@ public class CFGNode {
 		liveOut = new HashSet<String>();
 		successors = new HashSet<CFGNode>();
 		this.instruction = instruction;
+		this.lineNum = instruction.sourcePos.line;
 		this.function = func;
 	}
 

@@ -26,5 +26,14 @@ func Fac.ComputeFac(this num)
     t.3 = call t.1(this t.2)
     num_aux = MulS(num t.3)
   if1_end:
-  ret num_aux
+  
+  a = 0
+  yolo:
+  b = Add(a 1)
+  c = Add(c b) 
+  a = MulS(b 2)
+  res = LtS(a 9)
+  if res goto :yolo
+  temp = c
+  ret 
   

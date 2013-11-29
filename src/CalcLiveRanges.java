@@ -1,5 +1,7 @@
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map.Entry;
 
 import cs132.vapor.ast.VFunction;
 import cs132.vapor.ast.VInstr;
@@ -15,45 +17,80 @@ public class CalcLiveRanges {
 	HashMap <String,CFGNode> CFGs;
 	//Map instructions to CFGs
 	HashMap <VInstr,CFGNode> instructionsToCFGNode;
+	//Map function names to line ranges
+	HashMap <String, HashMap<String,LiveRanges>> liveRanges;
 	VaporProgram program;
 	
 	public CalcLiveRanges(HashMap <String,CFGNode> CFGs,HashMap <VInstr,CFGNode> instructionsToCFGNode, VaporProgram program ) {
 		this.program = program;
 		this.CFGs = CFGs;
 		this.instructionsToCFGNode = instructionsToCFGNode;
+		this.liveRanges = new HashMap <String, HashMap<String,LiveRanges>>();
 		
 		//Traverse each CFG
 		for(VFunction f:program.functions) {
 			HashMap<String,LiveRanges> ranges = new HashMap<String, LiveRanges>();
-			HashMap<String,HashSet<int[]>> currentlyLive = new HashMap<String,HashSet<int[]>>();
-			CalcLiveRangesForCFG(CFGs.get(f.ident),ranges,currentlyLive);
+			HashSet<CFGNode> visited = new HashSet<CFGNode>();
+			CalcLiveRangesForCFG(CFGs.get(f.ident),ranges,visited);
+			liveRanges.put(f.ident, ranges);
 		}
 	}
 	
 	//Traverse CFG to calc live ranges.
-	public void CalcLiveRangesForCFG(CFGNode node, HashMap<String,LiveRanges> ranges,HashMap<String,HashSet<int[]>> currentlyLive ) {
-		//Keep track of what variables are currently live
+	public void CalcLiveRangesForCFG(CFGNode node, HashMap<String,LiveRanges> ranges, HashSet<CFGNode> visited) {
+		if(visited.contains(node)) {
+			return;
+		}
+		
 		for(String v:node.liveOut) {
 			//Because this variable is live out, the var will be live in
 			//in at least one of its successors. Find which successors, and
 			//for each, add an edge to represent liveness
+			boolean foundOneSuccesor = false;
 			for(CFGNode successor:node.successors) {
 				if(successor.liveIn.contains(v)) {
-					//int edge[2] = node.
+					//Add an edge
+					LiveRanges r = ranges.get(v);
+					if(r == null) {
+						r = new LiveRanges();
+						ranges.put(v, r);
+					}
+					
+					r.addEdge(node.lineNum, successor.lineNum);
+					foundOneSuccesor = true;
 				}
 			}
-			
-			
-			//If this variable is live on prev edge that led us to this node,
-			//then insert this range into the existing list, else start a new
-			//one because these ranges are disjoint
-			
-			if(currentlyLive.containsKey(v)) {
-				for(String v:node.successors) {
-					//
+	
+			assert(foundOneSuccesor);
+		}
+		
+		//Now visit all of the successors
+		for(CFGNode successor:node.successors) {
+			//Keep track of visited nodes to prevent cycles
+			visited.add(node);
+			CalcLiveRangesForCFG(successor, ranges, visited);
+		}
+		
+	}
+	
+	public void printLiveRanges() {
+		//Traverse each CFG
+		for(VFunction f:program.functions) {
+			HashMap<String,LiveRanges> ranges = liveRanges.get(f.ident);
+			//Print this set
+			System.out.println("Function " + f.ident);
+			for(Entry<String, LiveRanges> entry:ranges.entrySet()) {
+				String var = entry.getKey();
+				LiveRanges l = entry.getValue();
+				String set = var + "= { ";
+				LinkedHashSet<int[]> tuples = l.ranges;
+				for(int[] tuple:tuples) {
+					set += " " + String.valueOf(tuple[0]) + " -> " + String.valueOf(tuple[1]) + ",";
 				}
+				set = set + " }";
+				System.out.println(set);
 			}
 		}
 	}
-
+				
 }
