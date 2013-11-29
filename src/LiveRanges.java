@@ -25,12 +25,12 @@ public class LiveRanges {
 	//If Yes, then return true so indicate that the variable for which
 	//we're checking whether a conflict exists cannot simultaneously be
 	//in the same register as this variable
-	public boolean rangeConflict(int lineStart, int lineEnd) {
-		int []edge = {lineStart, lineEnd};
-		if(ranges.contains(edge)) {
-			return true;
-		} else {
-			return false;
+	public boolean rangeConflict(LiveRanges other) {
+		for(int []edge:other.ranges) {
+			if(ranges.contains(edge)) {
+				return true;
+			}
 		}
+		return false;
 	}
 }
