@@ -326,21 +326,53 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 	}
 
 	@Override
-	public String visit(Integer arg0, VBranch arg1) throws Throwable {
-		// TODO Auto-generated method stub
-		return null;
+	public String visit(Integer indentation, VBranch arg1) throws Throwable {
+		String ifString = "";
+		String ifCondition = "";
+		if(isOperandVariable(arg1.value)) {
+			//Operand is a variable. 
+			String var = arg1.value.toString();
+			ifString = spillOrSubstituteVariable(spillRegisters[0], var, indentation);
+		} else {
+			ifString = assign(spillRegisters[0],arg1.value.toString(),indentation);
+		}
+		String branchReg = spillRegisters[0];
+		
+		if(arg1.positive) {
+			ifCondition = "if ";
+		} else {
+			ifCondition = "if0 ";
+		}
+		
+		ifCondition = ifCondition + branchReg + " goto " + arg1.target.toString();
+		return concatentateInstructions(ifString, ifCondition);
 	}
 
 	@Override
-	public String visit(Integer arg0, VGoto arg1) throws Throwable {
-		// TODO Auto-generated method stub
-		return null;
+	public String visit(Integer indentation, VGoto arg1) throws Throwable {
+		String var = variableFromMemAddress(arg1.target);
+		String gotoString = "";
+		if(var != null) {
+			gotoString = spillOrSubstituteVariable(spillRegisters[0], var, indentation);
+			return "goto " + spillRegisters[0];
+		} else {
+			return "goto " + arg1.target.toString();
+		}
 	}
 
 	@Override
-	public String visit(Integer arg0, VReturn arg1) throws Throwable {
-		// TODO Auto-generated method stub
-		return null;
+	public String visit(Integer indentation, VReturn arg1) throws Throwable {
+		String returnString = "";
+		
+		if(isOperandVariable(arg1.value)) {
+			//Operand is a variable. 
+			String var = arg1.value.toString();
+			returnString = spillOrSubstituteVariable("$v0", var, indentation);
+		} else {
+			returnString = assign("$v0", arg1.value.toString(), indentation);
+		}
+		
+		return concatentateInstructions(returnString, "ret"); 
 	}
 	
 	

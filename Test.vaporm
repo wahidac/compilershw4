@@ -1,23 +1,37 @@
-func Main [in 0, out 0, local 6]
+func Main [in 0, out 0, local 8]
 
-  local[0] = 4
+  $t1 = 4
 
   $t0 = 5
 
-  $s0 = HeapAllocZ( 4)
+  local[0] = 54
 
-  $s0 = 54
-  $s0 = Add( $s0 1)
-
-  $v1 = local[0]
-  $t0 = Add( $s0 $v1)
-  local[0] = $t0
   $v0 = local[0]
-  $t1 = $v0
+  $v1 = $t1
+  $t1 = Add( $v0 $v1)
+  $v0 = $t1
+  $s0 = $v0
+  $v0 = $t1
+  $t0 = $v0
   $v0 = local[0]
   $t0 = $v0
 
-  $t0 = $s0
+  $t0 = HeapAllocZ( 4)
+  local[0] = $t0
 
-PrintIntS( $t1)
+  $v1 = local[0]
+  [$v1+0] = 453
+
+  $v0 = local[0]
+  $v0 = [$v0+0]
+  $t1 = $v0
+
+  $v0 = $s0
+PrintIntS( $v0)
+
+  $v0 = $t1
+PrintIntS( $v0)
+  $v0 = local[0]
+  $t0 = $v0
 ret 2
+
