@@ -1,0 +1,18 @@
+func Main [in 0, out 0, local 6]
+
+  local[0] = 4
+
+  $t0 = 5
+
+  $s0 = HeapAllocZ( 4)
+
+  $s0 = 54
+
+  $t1 = 6
+  $v0 = local[0]
+  $t0 = $v0
+
+  $t0 = $s0
+
+PrintIntS( $t1)
+ret 3

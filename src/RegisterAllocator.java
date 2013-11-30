@@ -118,7 +118,6 @@ public class RegisterAllocator {
 				  }
 				  
 				  if(!foundRegister) {
-					  System.out.println("Spilling " + var + " and repeating algorithn");
 					  //Spill the largest. Heuristic = minimize num registers spilled
 					  int maxSize = 0;
 					  String maxVar = "";
@@ -137,6 +136,7 @@ public class RegisterAllocator {
 					  //No longer need to consider live ranges for this var
 					  r.remove(maxVar);
 					  assignedRegisters = assignRegisters(r, spilledVariables);
+					  System.out.println("Spilling " + maxVar + " and repeating algorithn");
 					  return assignedRegisters;
 				  }
 			  }

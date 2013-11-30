@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +31,7 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 		
 		spillRegisters[0] = "$v0";
 		spillRegisters[1] = "$v1";
-		spillRegisters[2] = "t0";
+		spillRegisters[2] = "$t0";
 		
 		String prefix = "$a";
 		for(int i = 0; i < arguments.length; i++) {
@@ -106,7 +107,7 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 				//swap w/ reg we've given 
 				val = regAssignments.get(val);
 				if(val == null)
-					val = spillRegisters[0];
+					val = spillRegisters[2];
 			}
 		}
 		
@@ -118,7 +119,7 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 		} else {
 			dest = regAssignments.get(dest);
 			if(dest == null)
-				dest = spillRegisters[1];
+				dest = spillRegisters[2];
 			assignment = concatentateInstructions(assignment, assign(dest, val, indentation));
 		}
 		
@@ -130,7 +131,7 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 		//Function call. Look at arguments function expects and assign
 		//parameters to arg registers + out arr if too many params.
 		
-		int argReg = 0;
+	/*	int argReg = 0;
 		String assignArgsToReg = "";
 		for(VOperand operand:arg1.args) {
 			//If an argument is a variable, load it from the stack memory
@@ -157,7 +158,7 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 				assignArgsToReg = concatentateInstructions(assignArgsToReg,assign(arguments[argReg],argRegOperand,indentation));
 			}
 			argReg++;	
-		}
+		}*/
 		return null;
 	}
 	
@@ -165,47 +166,65 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 
 	@Override
 	public String visit(Integer indentation, VBuiltIn arg1) throws Throwable {
-		// TODO Auto-generated method stub
-	/*	String builtInCall = "";
-		//Check whether arguments, if so spill them
+		ArrayList<String> spilledVariablesForFunc = spilledVariables.get(currentFunction);
+		HashMap<String,String> regAssignments = registerAssignments.get(currentFunction);
+		String builtInCall = "";
+		//Check whether arguments are variables
 		String []argRegisters = {"",""};
 		int argReg = 0;
 		for(argReg = 0; argReg < arg1.args.length; argReg++) {
 			VOperand op = arg1.args[argReg];
 			if(isOperandVariable(op)) {
-				//load from mem
-				//NOTE: built ins w/ more than one operand? test in vapor parser
-				String spillReg = spillRegisters[argReg];
-				builtInCall = concatentateInstructions(builtInCall,retrieveValueFromMemory(currentFunction, op.toString(), spillReg, indentation));
-				argRegisters[argReg] = spillReg;
+				String val = op.toString();
+				int index = spilledVariablesForFunc.indexOf(val);
+				if(index != -1) {
+					//load from mem
+					String spillReg = spillRegisters[argReg];
+					builtInCall = concatentateInstructions(builtInCall,retrieveValueFromMemory(currentFunction, val, spillReg, indentation));
+					argRegisters[argReg] = spillReg;
+				} else {
+					//swap w/ reg we've given 
+					val = regAssignments.get(val);
+					if(val == null)
+						val = spillRegisters[2];
+					argRegisters[argReg] = val;
+				}
 			}
 		}
 
-		String dest = spillRegisters[argReg];
+	
 		String arguments = "";
-		for(int i = 0; i < argRegisters.length; i++) {
+		for(int i = 0; i < arg1.args.length; i++) {
 			if(argRegisters[i].isEmpty())
 				arguments += " " + arg1.args[i].toString();
 			else
 				arguments += " " + argRegisters[i];
 		}
-		String call = arg1.op.name + "(" ;
-		builtInCall = concatentateInstructions(builtInCall, assign(dest, arg1., indentation), strings)
-		built
-		
-		String val = arg1.source.toString();
-		String assignment = "";
-		
-		//If val is a variable, load its value from spilled reg
-		if(isOperandVariable(arg1.source)) {
-			assignment = retrieveSpilledVariable(val, spillRegisters[0], indentation);
-			val = spillRegisters[0];
+		String call = arg1.op.name + "(" + arguments + ")";
+		if(arg1.dest == null) {
+			builtInCall = concatentateInstructions(builtInCall, call);
+		} else {
+			//Assigning call result to a variable
+			String val = arg1.dest.toString();
+			int index = spilledVariablesForFunc.indexOf(val);
+			if(index != -1) {
+				//assign result to a mem location
+				String spillReg = spillRegisters[2];
+				builtInCall = concatentateInstructions(builtInCall, assign(spillReg, call, indentation));
+				String s = storeValueInMemory(currentFunction, val, spillReg, indentation);
+				builtInCall = concatentateInstructions(builtInCall, s);
+			} else {
+				//swap w/ reg we've given 
+				val = regAssignments.get(val);
+				if(val == null)
+					val = spillRegisters[2];
+				builtInCall = concatentateInstructions(builtInCall, assign(val, call, indentation));
+			}
+				
 		}
 		
-		//Put val in stack memory location that dest maps to 
-		assignment = concatentateInstructions(assignment, spillVariable(dest, val, indentation));
-		//Assign value to temp register and spill that temp register*/
-		return null;
+		return builtInCall;
+
 	}
 
 	@Override
