@@ -7,12 +7,17 @@ func Main [in 0, out 0, local 6]
   $s0 = HeapAllocZ( 4)
 
   $s0 = 54
+  $s0 = Add( $s0 1)
 
-  $t1 = 6
+  $v1 = local[0]
+  $t0 = Add( $s0 $v1)
+  local[0] = $t0
+  $v0 = local[0]
+  $t1 = $v0
   $v0 = local[0]
   $t0 = $v0
 
   $t0 = $s0
 
 PrintIntS( $t1)
-ret 3
+ret 2
