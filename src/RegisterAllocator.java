@@ -33,6 +33,7 @@ public class RegisterAllocator {
 		  } else if(reg.startsWith("$s")) {
 			  return "CALLEE_SAVED";
 		  } else {
+			  assert(false);
 			  return "NONE";
 		  }
 	  }
@@ -42,9 +43,9 @@ public class RegisterAllocator {
 		  	spilledVariables = new HashMap<String, ArrayList<String>>();
 		  	registerAssignments = new HashMap<String,HashMap<String,String>>();
 
-		  	calleeSaved = new String[1];
+		  	calleeSaved = new String[8];
 			//Reserve register $t1 to use for spilling 
-			callerSaved = new String[1];
+			callerSaved = new String[8];
 			
 			String prefix = "$s";
 			for(int i = 0; i < calleeSaved.length; i++) {
@@ -69,12 +70,15 @@ public class RegisterAllocator {
 	  public HashMap<String,String> assignRegisters(HashMap<String,LiveRanges> r, ArrayList<String> spilledVariables) {
 		  LinkedHashSet<String> freeRegisterPool = new LinkedHashSet<String>();
 		  HashMap<String,String> assignedRegisters = new HashMap<String,String>();
+		  HashMap<String,HashSet<String>> registersToVariables =  new HashMap<String,HashSet<String>>();
 		  
 		  for(String s:callerSaved) {
 			  freeRegisterPool.add(s);
+			  registersToVariables.put(s, new HashSet<String>());
 		  }
 		  for(String s:calleeSaved) {
 			  freeRegisterPool.add(s);
+			  registersToVariables.put(s, new HashSet<String>());
 		  }
 		  
 	
@@ -89,34 +93,37 @@ public class RegisterAllocator {
 			  if(itr.hasNext()) {
 				  String freeReg = itr.next();
 				  assignedRegisters.put(var, freeReg);
+				  registersToVariables.get(freeReg).add(var);
 				  freeRegisterPool.remove(freeReg);
 				  System.out.println("Assigning free reg " + freeReg + " to " + var);
 			  } else {
-				  //Out of free registers. Try to find a variable for which we have
-				  //no liveness conflicts
+				  //Out of free registers. Try to find an open register
 				  boolean foundRegister = false;
-				  for(Entry<String, LiveRanges> e:r.entrySet()) {
-					  String assignedVar = e.getKey();
-					  String assignedReg = assignedRegisters.get(assignedVar);
-					  if(assignedReg != null) {
+				  for(Entry<String, HashSet<String>> e:registersToVariables.entrySet()) {
+					  String assignedReg = e.getKey();
+					  HashSet<String> variablesUsingRegister = e.getValue();
+					  boolean noConflicts = true;
+					  //Check to see whether any variable using this register has a conflict with
+					  //the one we're trying to allow use the register
+					  for(String assignedVar:variablesUsingRegister) {
 						  LiveRanges rangesOfAssignedVar = r.get(assignedVar);
 						  LiveRanges unassignedVarRange = r.get(var);
 						  boolean conflict = rangesOfAssignedVar.rangeConflict(unassignedVarRange);
 						  CalcLiveRanges.printLiveRanges(assignedVar, rangesOfAssignedVar);
 						  CalcLiveRanges.printLiveRanges(var, unassignedVarRange);
-						  
-						  if(!conflict) {
-						
-							  //Use this register!
-							  foundRegister = true;
-							  assignedRegisters.put(var, assignedReg);
-							  System.out.println("Assigning assigned reg " + assignedReg + " to " + var);
-							  break;
-						  }
+						  if(conflict) 
+							  noConflicts = false;  
 					  }
 					  
-				  }
-				  
+					  if(noConflicts) {							
+						 foundRegister = true;
+					     assignedRegisters.put(var, assignedReg);
+						 registersToVariables.get(assignedReg).add(var);
+					     System.out.println("Assigning assigned reg " + assignedReg + " to " + var);
+					     break;
+				      }
+			       }
+
 				  if(!foundRegister) {
 					  //Spill the largest. Heuristic = minimize num registers spilled
 					  int maxSize = 0;
@@ -135,8 +142,8 @@ public class RegisterAllocator {
 					  spilledVariables.add(maxVar);
 					  //No longer need to consider live ranges for this var
 					  r.remove(maxVar);
-					  assignedRegisters = assignRegisters(r, spilledVariables);
 					  System.out.println("Spilling " + maxVar + " and repeating algorithn");
+					  assignedRegisters = assignRegisters(r, spilledVariables);
 					  return assignedRegisters;
 				  }
 			  }

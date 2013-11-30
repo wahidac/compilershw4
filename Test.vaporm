@@ -1,4 +1,4 @@
-func Main [in 0, out 0, local 8]
+func Main [in 0, out 0, local 10]
 
   $t1 = 4
 
@@ -24,14 +24,30 @@ func Main [in 0, out 0, local 8]
 
   $v0 = local[0]
   $v0 = [$v0+0]
+  local[0] = $v0
+  $v0 = local[0]
   $t1 = $v0
 
   $v0 = $s0
-PrintIntS( $v0)
+  PrintIntS( $v0)
 
   $v0 = $t1
-PrintIntS( $v0)
+  PrintIntS( $v0)
   $v0 = local[0]
   $t0 = $v0
-ret 2
+
+  $t1 = :skipyolo
+
+  $s0 = 1
+  $v0 = $s0
+if0 $v0 goto :yolo
+  $v0 = $t1
+  goto $v0
+yolo:
+broyo:
+
+  PrintIntS( 123)
+skipyolo:
+  $v0 = local[0]
+ret
 

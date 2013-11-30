@@ -2,13 +2,11 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 
 import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
 
 import cs132.vapor.ast.*;
-
-//NOTE: at beginning of function, save any callee saved
-//registers that are going to be used
 
 
 //Traverse tree, swapping variable references to the registers they
@@ -21,6 +19,10 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 	HashMap<String, ArrayList<String>> spilledVariables;
 	String currentFunction;
 	String indentationSpacing;
+	//Starting offset for spilled variables (everything after the backup storage)
+	int spillStorageStartOffset;
+	//Starting offset for backup storage of caller saved registers
+	int startingOffsetForCallerSavedRegisters;
 	
 	String [] spillRegisters;
     String [] arguments;
@@ -43,6 +45,39 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 		
 		
 		indentationSpacing = "  ";	
+	}
+	
+	public String loadFromArgumentRegisters(VVarRef.Local []params) {
+		ArrayList<String> spilledVariablesForFunc = spilledVariables.get(currentFunction);
+		HashMap<String,String> regAssignments = registerAssignments.get(currentFunction);
+		String loadArguments = "";
+		//Load everything from the argument registers
+		for(int i = 0; i < params.length; i++) {
+			String paramVal = "";
+			if(i < 4) {
+				paramVal = arguments[i];
+			} else {
+				//Load this parameter from the in stack
+				int indexForInStack = i - 4;
+				String assignment = assign(spillRegisters[0], "in[ " +  String.valueOf(indexForInStack) + " ]", 1);
+				loadArguments = concatentateInstructions(loadArguments, assignment);
+				paramVal = spillRegisters[0];
+			}
+				String parameter = params[i].toString();
+				int index = spilledVariablesForFunc.indexOf(parameter);
+				if(index != -1) {
+					//Store val in memory
+					loadArguments = concatentateInstructions(loadArguments, storeValueInMemory(currentFunction, parameter, paramVal, 1));
+				} else {
+					String destReg = regAssignments.get(parameter);
+					if(destReg == null)
+						destReg = spillRegisters[2];
+					loadArguments = concatentateInstructions(loadArguments, assign(destReg, paramVal, 1));
+				}
+		
+		  }
+		
+		  return loadArguments;
 	}
 	
 	public String getIndentation(Integer indentation) {
@@ -68,7 +103,7 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 			
 		//Generate vapor code for spill. Assumed that locals array already
 		//has enough space allocated  
-		String spillString = "local[" + String.valueOf(memoryOffset) + "]";
+		String spillString = "local[" + String.valueOf(memoryOffset+spillStorageStartOffset) + "]";
 		spillString = assign(spillString, sourceVal, indentation);
 
 		return spillString;
@@ -80,7 +115,7 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 		//index in local array = index in array list
 		int indexOfVar = spilledVarsForFunc.indexOf(variable);
 		
-		String spillString = "local[" + String.valueOf(indexOfVar) + "]";
+		String spillString = "local[" + String.valueOf(indexOfVar+spillStorageStartOffset) + "]";
 		spillString = assign(destReg, spillString, indentation);	
 		return spillString;
 	}
@@ -123,9 +158,7 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 		return null;
 	}
 	
-	
-	
-	
+
 	@Override
 	//Assignment statement
 	public String visit(Integer indentation, VAssign arg1) throws Throwable {
@@ -157,38 +190,73 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 
 	@Override
 	public String visit(Integer indentation, VCall arg1) throws Throwable {
+		ArrayList<String> spilledVariablesForFunc = spilledVariables.get(currentFunction);
+		HashMap<String,String> regAssignments = registerAssignments.get(currentFunction);
 		//Function call. Look at arguments function expects and assign
 		//parameters to arg registers + out arr if too many params.
+		String functionCall = "";
+		//Backup caller saved registers in use
+		ArrayList<String> callerSavedRegisters = new ArrayList<String>();
+		String backupString = saveCallerSavedRegisters(callerSavedRegisters);
+		String reloadString = loadCallerSavedRegisters(callerSavedRegisters);
 		
-	/*	int argReg = 0;
+		int paramNum = 0;
 		String assignArgsToReg = "";
+		String handleParams = "";
 		for(VOperand operand:arg1.args) {
-			//If an argument is a variable, load it from the stack memory
 			boolean isVariable = isOperandVariable(operand);
-			String argRegOperand = "";
-			String destReg = spillRegisters[0];
-			String opString = operand.toString();
-			if(isVariable) {//Spill it to dest reg
-				String spillString = retrieveValueFromMemory(currentFunction,opString, destReg, indentation);
-				assignArgsToReg = concatentateInstructions(assignArgsToReg, spillString);
-				argRegOperand = destReg;
+			String currentArgument = "";
+			if(isVariable) {
+				String s = spillOrSubstituteVariable(spillRegisters[0], operand.toString(), indentation);
+				handleParams = concatentateInstructions(handleParams, s);
+				currentArgument = spillRegisters[0];
 			} else {
-				argRegOperand = opString;
+				currentArgument = operand.toString();
 			}
 			
-			if(argReg > 3) {
-				//Start puttin inside out storage. 
-				//NOTE: make sure out storage size is sufficient. Can do by incrementing
-				//counter and then at top level set declaration after body has been traversed
-				int outIndex = argReg-4;
-				assignArgsToReg = concatentateInstructions(assignArgsToReg, assign("out[" + String.valueOf(outIndex) + "]",argRegOperand, indentation));
+			if(paramNum < 4) {
+				String destReg = this.arguments[paramNum];
+				handleParams = concatentateInstructions(handleParams, assign(destReg,currentArgument,indentation));
+			} else {
+				int outOffset = paramNum - 4;
+				String destAddress = "out[" + String.valueOf(outOffset) + "]";
+				handleParams = concatentateInstructions(handleParams, assign(destAddress,currentArgument,indentation));
 			}
-			else {
-				assignArgsToReg = concatentateInstructions(assignArgsToReg,assign(arguments[argReg],argRegOperand,indentation));
+			
+			paramNum++;
+		}
+		
+		String funcCallString = "";
+		//Now make the function call
+		String funcCallAddress = variableFromMemAddress(arg1.addr);
+		if(funcCallAddress != null) {
+			String s = spillOrSubstituteVariable(spillRegisters[0], funcCallAddress, indentation);
+			funcCallString = concatentateInstructions(functionCall, s);
+			funcCallAddress = spillRegisters[0];
+		} else {
+			funcCallAddress = arg1.addr.toString();
+		}
+		String c = getIndentation(indentation) + "call " + funcCallAddress;
+		funcCallString = concatentateInstructions(funcCallString, c);
+		
+		//If return val assign value in $v0 to variable getting return value
+		String retHandling = "";
+		if(arg1.dest != null) {
+			String destVar = arg1.dest.toString();
+			int index = spilledVariablesForFunc.indexOf(destVar);
+			if(index != -1) {
+				//Store val in memory
+				retHandling = concatentateInstructions(retHandling, storeValueInMemory(currentFunction, destVar, "$v0", indentation));
+			} else {
+				destVar = regAssignments.get(destVar);
+				if(destVar == null)
+					destVar = spillRegisters[2];
+				retHandling = concatentateInstructions(retHandling, assign(destVar, "$v0", indentation));
 			}
-			argReg++;	
-		}*/
-		return null;
+		} 
+		
+		functionCall = concatentateInstructions(backupString, handleParams,funcCallString,retHandling,backupString);		
+		return functionCall;
 	}
 	
 		
@@ -222,7 +290,7 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 		}
 		String call = arg1.op.name + "(" + arguments + ")";
 		if(arg1.dest == null) {
-			builtInCall = concatentateInstructions(builtInCall, call);
+			builtInCall = concatentateInstructions(builtInCall, getIndentation(indentation)+ call);
 		} else {
 			//Assigning call result to a variable
 			String val = arg1.dest.toString();
@@ -251,8 +319,6 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 	//Memory write operation
 	public String visit(Integer indentation, VMemWrite arg1) throws Throwable {
 		String memWrite = "";
-		ArrayList<String> spilledVariablesForFunc = spilledVariables.get(currentFunction);
-		HashMap<String,String> regAssignments = registerAssignments.get(currentFunction);
 		String sourceVar = arg1.source.toString();
 		
 		if(isOperandVariable(arg1.source)) {
@@ -354,7 +420,8 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 		String gotoString = "";
 		if(var != null) {
 			gotoString = spillOrSubstituteVariable(spillRegisters[0], var, indentation);
-			return "goto " + spillRegisters[0];
+			gotoString = concatentateInstructions(gotoString, getIndentation(indentation) + "goto " + spillRegisters[0]);
+			return gotoString;
 		} else {
 			return "goto " + arg1.target.toString();
 		}
@@ -364,6 +431,10 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 	public String visit(Integer indentation, VReturn arg1) throws Throwable {
 		String returnString = "";
 		
+		if(arg1.value == null) {
+			return "";
+		}
+		
 		if(isOperandVariable(arg1.value)) {
 			//Operand is a variable. 
 			String var = arg1.value.toString();
@@ -372,7 +443,60 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 			returnString = assign("$v0", arg1.value.toString(), indentation);
 		}
 		
-		return concatentateInstructions(returnString, "ret"); 
+		return returnString; 
+	}
+	
+	public int numCallerSavedRegistersInUse() {
+		HashMap<String,String> assignments = registerAssignments.get(currentFunction);
+		HashSet<String> setOfCallerSavedRegs = new HashSet<String>();
+		for(Entry<String, String> e:assignments.entrySet()) {
+			String reg = e.getValue();
+			String type = RegisterAllocator.registerType(reg);
+			if(type.equals("CALLER_SAVED")) {
+				setOfCallerSavedRegs.add(reg);
+			}
+		}
+		return setOfCallerSavedRegs.size();
+	}
+	
+	public String saveCallerSavedRegisters(ArrayList<String> callerSavedRegisters) {
+		String returnString = "";
+		//Backup all caller saved registers that are being used 
+		HashSet<String> setOfCallerSavedRegs = new HashSet<String>();
+		HashMap<String,String> assignments = registerAssignments.get(currentFunction);
+		for(Entry<String, String> e:assignments.entrySet()) {
+			String reg = e.getValue();
+			String type = RegisterAllocator.registerType(reg);
+			if(type.equals("CALLER_SAVED")) {
+				setOfCallerSavedRegs.add(reg);
+			}
+		}
+		
+		for(String s:setOfCallerSavedRegs) {
+			callerSavedRegisters.add(s);
+		}
+
+		//Backup into local
+		for(int i = 0; i < callerSavedRegisters.size(); i++) {
+			String backupString = "local[" + String.valueOf(i+startingOffsetForCallerSavedRegisters) + "]";
+			backupString = getIndentation(1) + backupString + " = " + callerSavedRegisters.get(i); 
+			returnString = concatentateInstructions(returnString, backupString);
+		}
+		
+		return returnString;
+	}
+	
+	public String loadCallerSavedRegisters(ArrayList<String> callerSavedRegisters) {
+		String returnString = "";
+		
+		//Load back the caller saved registers
+		for(int i = 0; i < callerSavedRegisters.size(); i++) {
+			String backupString = "local[" + String.valueOf(i+startingOffsetForCallerSavedRegisters) + "]";
+			backupString = getIndentation(1) + callerSavedRegisters.get(i) + " = " + backupString; 
+			returnString = concatentateInstructions(returnString, backupString);
+		}
+		
+		return returnString;
 	}
 	
 	
