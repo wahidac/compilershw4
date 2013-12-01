@@ -43,9 +43,9 @@ public class RegisterAllocator {
 		  	spilledVariables = new HashMap<String, ArrayList<String>>();
 		  	registerAssignments = new HashMap<String,HashMap<String,String>>();
 
-		  	calleeSaved = new String[8];
+		  	calleeSaved = new String[0];
 			//Reserve register $t1 to use for spilling 
-			callerSaved = new String[8];
+			callerSaved = new String[0];
 			
 			String prefix = "$s";
 			for(int i = 0; i < calleeSaved.length; i++) {
@@ -60,7 +60,7 @@ public class RegisterAllocator {
 			for(Entry<String, HashMap<String,LiveRanges>> entry:ranges.entrySet()) {
 				HashMap<String,LiveRanges> r = entry.getValue();
 				ArrayList<String> spilledVariables = new ArrayList<String>();
-				System.out.println("Allocation for function " + entry.getKey());
+				//System.out.println("Allocation for function " + entry.getKey());
 				HashMap<String,String> assignments = assignRegisters(r, spilledVariables);
 				this.spilledVariables.put(entry.getKey(), spilledVariables);
 				this.registerAssignments.put(entry.getKey(), assignments);
@@ -95,7 +95,7 @@ public class RegisterAllocator {
 				  assignedRegisters.put(var, freeReg);
 				  registersToVariables.get(freeReg).add(var);
 				  freeRegisterPool.remove(freeReg);
-				  System.out.println("Assigning free reg " + freeReg + " to " + var);
+				  //System.out.println("Assigning free reg " + freeReg + " to " + var);
 			  } else {
 				  //Out of free registers. Try to find an open register
 				  boolean foundRegister = false;
@@ -109,8 +109,8 @@ public class RegisterAllocator {
 						  LiveRanges rangesOfAssignedVar = r.get(assignedVar);
 						  LiveRanges unassignedVarRange = r.get(var);
 						  boolean conflict = rangesOfAssignedVar.rangeConflict(unassignedVarRange);
-						  CalcLiveRanges.printLiveRanges(assignedVar, rangesOfAssignedVar);
-						  CalcLiveRanges.printLiveRanges(var, unassignedVarRange);
+						  //CalcLiveRanges.printLiveRanges(assignedVar, rangesOfAssignedVar);
+						  //CalcLiveRanges.printLiveRanges(var, unassignedVarRange);
 						  if(conflict) 
 							  noConflicts = false;  
 					  }
@@ -119,7 +119,7 @@ public class RegisterAllocator {
 						 foundRegister = true;
 					     assignedRegisters.put(var, assignedReg);
 						 registersToVariables.get(assignedReg).add(var);
-					     System.out.println("Assigning assigned reg " + assignedReg + " to " + var);
+					     //System.out.println("Assigning assigned reg " + assignedReg + " to " + var);
 					     break;
 				      }
 			       }
@@ -142,7 +142,7 @@ public class RegisterAllocator {
 					  spilledVariables.add(maxVar);
 					  //No longer need to consider live ranges for this var
 					  r.remove(maxVar);
-					  System.out.println("Spilling " + maxVar + " and repeating algorithn");
+					  //System.out.println("Spilling " + maxVar + " and repeating algorithn");
 					  assignedRegisters = assignRegisters(r, spilledVariables);
 					  return assignedRegisters;
 				  }

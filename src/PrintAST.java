@@ -201,7 +201,6 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 		String reloadString = loadCallerSavedRegisters(callerSavedRegisters);
 		
 		int paramNum = 0;
-		String assignArgsToReg = "";
 		String handleParams = "";
 		for(VOperand operand:arg1.args) {
 			boolean isVariable = isOperandVariable(operand);
@@ -255,7 +254,7 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 			}
 		} 
 		
-		functionCall = concatentateInstructions(backupString, handleParams,funcCallString,retHandling,backupString);		
+		functionCall = concatentateInstructions(backupString, handleParams,funcCallString,reloadString,retHandling);		
 		return functionCall;
 	}
 	
@@ -340,7 +339,6 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 			} else {
 				String lhs = accessMemory(ref.base.toString(), ref.byteOffset);
 				memWrite = concatentateInstructions(memWrite, assign(lhs,sourceVar,indentation));
-
 			}
 		} else {
 			assert(false);
@@ -409,8 +407,8 @@ public class PrintAST extends VInstr.VisitorPR<Integer, String, Throwable>  {
 		} else {
 			ifCondition = "if0 ";
 		}
-		
-		ifCondition = ifCondition + branchReg + " goto " + arg1.target.toString();
+		 
+		ifCondition = getIndentation(indentation) + ifCondition + branchReg + " goto " + arg1.target.toString();
 		return concatentateInstructions(ifString, ifCondition);
 	}
 

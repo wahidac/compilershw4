@@ -125,7 +125,7 @@ public class V2VM {
 				  //Need room for backing up callee saved register, storing spilled variables, and
 				  //backing up caller saved registers
 				  int sizeOfLocalStack = numCalleeSavedRegisters + numSpilledVariables + numCallerSavedRegisters;
-				  currentFunction += " [in " + String.valueOf(numLocals) +" , out " + String.valueOf(numLocals) +" , local " + String.valueOf(sizeOfLocalStack) + "]";				 
+				  currentFunction += " [in " + String.valueOf(0) +" , out " + String.valueOf(0) +" , local " + String.valueOf(sizeOfLocalStack) + "]";				 
 				  currentFunction = concatentateInstructions(currentFunction, saveCalleeSavedReg);
 				  
 				  
@@ -162,7 +162,7 @@ public class V2VM {
 				  functions = concatentateInstructions(functions, currentFunction);
 
 			  }
-			  
+			  System.out.println(dataSection);
 			  System.out.println(functions);
 			  return program;
 			}
