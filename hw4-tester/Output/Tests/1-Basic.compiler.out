@@ -1,0 +1,17 @@
+
+
+func Main [in 0 , out 0 , local 2]
+
+
+
+  local[1] = 4
+
+  $v0 = local[1]
+  $t0 = Add( $v0 2)
+  local[0] = $t0
+
+  $v0 = local[0]
+  PrintIntS( $v0)
+
+
+  ret

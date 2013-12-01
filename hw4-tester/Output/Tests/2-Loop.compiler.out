@@ -1,0 +1,26 @@
+
+
+func Main [in 0 , out 0 , local 2]
+
+
+
+  local[0] = 1
+goto :end
+begin:
+
+  $v0 = local[0]
+  PrintIntS( $v0)
+
+  $v0 = local[0]
+  $t0 = MulS( $v0 2)
+  local[0] = $t0
+end:
+
+  $v0 = local[0]
+  $t0 = LtS( $v0 100)
+  local[1] = $t0
+  $v0 = local[1]
+  if $v0 goto :begin
+
+
+  ret

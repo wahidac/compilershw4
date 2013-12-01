@@ -1,0 +1,148 @@
+
+const vmt_MT4
+  :MT4.Start
+  :MT4.Change
+
+
+func Main [in 0 , out 7 , local 3]
+
+
+
+  $t0 = HeapAllocZ( 4)
+  local[0] = $t0
+
+  $v1 = local[0]
+  [$v1+0] = :vmt_MT4
+  $v0 = local[0]
+  if $v0 goto :null1
+
+  Error( "null pointer")
+null1:
+
+  $v0 = local[0]
+  $v0 = [$v0+0]
+  local[1] = $v0
+
+  $v0 = local[1]
+  $v0 = [$v0+0]
+  local[1] = $v0
+
+
+  $v0 = local[0]
+  $a0 = $v0
+  $a1 = 1
+  $a2 = 2
+  $a3 = 3
+  out[0] = 4
+  out[1] = 5
+  out[2] = 6
+
+  $v0 = local[1]
+  call $v0
+
+
+  local[2] = $v0
+
+  $v0 = local[2]
+  PrintIntS( $v0)
+
+
+  ret
+func MT4.Start [in 7 , out 7 , local 9]
+
+
+  local[6] = $a0
+  local[5] = $a1
+  local[4] = $a2
+  local[3] = $a3
+  $v0 = in[ 0 ]
+  local[2] = $v0
+  $v0 = in[ 1 ]
+  local[1] = $v0
+  $v0 = in[ 2 ]
+  local[0] = $v0
+
+  $v0 = local[5]
+  PrintIntS( $v0)
+
+  $v0 = local[4]
+  PrintIntS( $v0)
+
+  $v0 = local[3]
+  PrintIntS( $v0)
+
+  $v0 = local[2]
+  PrintIntS( $v0)
+
+  $v0 = local[1]
+  PrintIntS( $v0)
+
+  $v0 = local[0]
+  PrintIntS( $v0)
+
+  $v0 = local[6]
+  $v0 = [$v0+0]
+  local[7] = $v0
+
+  $v0 = local[7]
+  $v0 = [$v0+4]
+  local[7] = $v0
+
+
+  $v0 = local[6]
+  $a0 = $v0
+  $v0 = local[0]
+  $a1 = $v0
+  $v0 = local[1]
+  $a2 = $v0
+  $v0 = local[2]
+  $a3 = $v0
+  $v0 = local[3]
+  out[0] = $v0
+  $v0 = local[4]
+  out[1] = $v0
+  $v0 = local[5]
+  out[2] = $v0
+
+  $v0 = local[7]
+  call $v0
+
+
+  local[8] = $v0
+  $v0 = local[8]
+
+  ret
+func MT4.Change [in 7 , out 7 , local 6]
+
+
+  $t0 = $a0
+  local[5] = $a1
+  local[4] = $a2
+  local[3] = $a3
+  $v0 = in[ 0 ]
+  local[2] = $v0
+  $v0 = in[ 1 ]
+  local[1] = $v0
+  $v0 = in[ 2 ]
+  local[0] = $v0
+
+  $v0 = local[5]
+  PrintIntS( $v0)
+
+  $v0 = local[4]
+  PrintIntS( $v0)
+
+  $v0 = local[3]
+  PrintIntS( $v0)
+
+  $v0 = local[2]
+  PrintIntS( $v0)
+
+  $v0 = local[1]
+  PrintIntS( $v0)
+
+  $v0 = local[0]
+  PrintIntS( $v0)
+  $v0 = 0
+
+  ret
