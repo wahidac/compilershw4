@@ -4,22 +4,20 @@ func Main [in 0 , out 0 , local 2]
 
 
 
-  local[0] = 1
+  $t2 = 1
 goto :end
 begin:
 
-  $v0 = local[0]
+  $v0 = $t2
   PrintIntS( $v0)
 
-  $v0 = local[0]
-  $t0 = MulS( $v0 2)
-  local[0] = $t0
+  $v0 = $t2
+  $t2 = MulS( $v0 2)
 end:
 
-  $v0 = local[0]
-  $t0 = LtS( $v0 100)
-  local[1] = $t0
-  $v0 = local[1]
+  $v0 = $t2
+  $t1 = LtS( $v0 100)
+  $v0 = $t1
   if $v0 goto :begin
 
 

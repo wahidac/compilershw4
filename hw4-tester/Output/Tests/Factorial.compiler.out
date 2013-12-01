@@ -7,37 +7,42 @@ func Main [in 0 , out 2 , local 3]
 
 
 
-  $t0 = HeapAllocZ( 4)
-  local[0] = $t0
+  $t3 = HeapAllocZ( 4)
 
-  $v1 = local[0]
+  $v1 = $t3
   [$v1+0] = :vmt_Fac
-  $v0 = local[0]
+  $v0 = $t3
   if $v0 goto :null1
 
   Error( "null pointer")
 null1:
 
-  $v0 = local[0]
+  $v0 = $t3
   $v0 = [$v0+0]
-  local[1] = $v0
+  $t2 = $v0
 
-  $v0 = local[1]
+  $v0 = $t2
   $v0 = [$v0+0]
-  local[1] = $v0
+  $t2 = $v0
 
+  local[0] = $t1
+  local[1] = $t3
+  local[2] = $t2
 
-  $v0 = local[0]
+  $v0 = $t3
   $a0 = $v0
   $a1 = 10
 
-  $v0 = local[1]
+  $v0 = $t2
   call $v0
 
+  $t1 = local[0]
+  $t3 = local[1]
+  $t2 = local[2]
 
-  local[2] = $v0
+  $t1 = $v0
 
-  $v0 = local[2]
+  $v0 = $t1
   PrintIntS( $v0)
 
 
@@ -45,48 +50,59 @@ null1:
 func Fac.ComputeFac [in 2 , out 2 , local 7]
 
 
-  local[1] = $a0
-  local[0] = $a1
+  $t6 = $a0
+  $t2 = $a1
 
-  $v0 = local[0]
-  $t0 = LtS( $v0 1)
-  local[6] = $t0
-  $v0 = local[6]
+  $v0 = $t2
+  $t7 = LtS( $v0 1)
+  $v0 = $t7
   if0 $v0 goto :if1_else
 
-  local[2] = 1
+  $t4 = 1
 goto :if1_end
 if1_else:
 
-  $v0 = local[1]
+  $v0 = $t6
   $v0 = [$v0+0]
-  local[3] = $v0
+  $t5 = $v0
 
-  $v0 = local[3]
+  $v0 = $t5
   $v0 = [$v0+0]
-  local[3] = $v0
+  $t5 = $v0
 
-  $v0 = local[0]
-  $t0 = Sub( $v0 1)
-  local[5] = $t0
+  $v0 = $t2
+  $t3 = Sub( $v0 1)
 
+  local[0] = $t5
+  local[1] = $t4
+  local[2] = $t7
+  local[3] = $t6
+  local[4] = $t1
+  local[5] = $t3
+  local[6] = $t2
 
-  $v0 = local[1]
+  $v0 = $t6
   $a0 = $v0
-  $v0 = local[5]
+  $v0 = $t3
   $a1 = $v0
 
-  $v0 = local[3]
+  $v0 = $t5
   call $v0
 
+  $t5 = local[0]
+  $t4 = local[1]
+  $t7 = local[2]
+  $t6 = local[3]
+  $t1 = local[4]
+  $t3 = local[5]
+  $t2 = local[6]
 
-  local[4] = $v0
+  $t1 = $v0
 
-  $v0 = local[0]
-  $v1 = local[4]
-  $t0 = MulS( $v0 $v1)
-  local[2] = $t0
+  $v0 = $t2
+  $v1 = $t1
+  $t4 = MulS( $v0 $v1)
 if1_end:
-  $v0 = local[2]
+  $v0 = $t4
 
   ret

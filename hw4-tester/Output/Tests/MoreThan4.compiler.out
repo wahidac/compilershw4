@@ -8,27 +8,29 @@ func Main [in 0 , out 7 , local 3]
 
 
 
-  $t0 = HeapAllocZ( 4)
-  local[0] = $t0
+  $t3 = HeapAllocZ( 4)
 
-  $v1 = local[0]
+  $v1 = $t3
   [$v1+0] = :vmt_MT4
-  $v0 = local[0]
+  $v0 = $t3
   if $v0 goto :null1
 
   Error( "null pointer")
 null1:
 
-  $v0 = local[0]
+  $v0 = $t3
   $v0 = [$v0+0]
-  local[1] = $v0
+  $t2 = $v0
 
-  $v0 = local[1]
+  $v0 = $t2
   $v0 = [$v0+0]
-  local[1] = $v0
+  $t2 = $v0
 
+  local[0] = $t1
+  local[1] = $t3
+  local[2] = $t2
 
-  $v0 = local[0]
+  $v0 = $t3
   $a0 = $v0
   $a1 = 1
   $a2 = 2
@@ -37,111 +39,132 @@ null1:
   out[1] = 5
   out[2] = 6
 
-  $v0 = local[1]
+  $v0 = $t2
   call $v0
 
+  $t1 = local[0]
+  $t3 = local[1]
+  $t2 = local[2]
 
-  local[2] = $v0
+  $t1 = $v0
 
-  $v0 = local[2]
+  $v0 = $t1
   PrintIntS( $v0)
 
 
   ret
 func MT4.Start [in 7 , out 7 , local 9]
 
+  local[0] = $s0
 
-  local[6] = $a0
-  local[5] = $a1
-  local[4] = $a2
-  local[3] = $a3
+  $s0 = $a0
+  $t6 = $a1
+  $t5 = $a2
+  $t4 = $a3
   $v0 = in[ 0 ]
-  local[2] = $v0
+  $t3 = $v0
   $v0 = in[ 1 ]
-  local[1] = $v0
+  $t2 = $v0
   $v0 = in[ 2 ]
-  local[0] = $v0
+  $t1 = $v0
 
-  $v0 = local[5]
+  $v0 = $t6
   PrintIntS( $v0)
 
-  $v0 = local[4]
+  $v0 = $t5
   PrintIntS( $v0)
 
-  $v0 = local[3]
+  $v0 = $t4
   PrintIntS( $v0)
 
-  $v0 = local[2]
+  $v0 = $t3
   PrintIntS( $v0)
 
-  $v0 = local[1]
+  $v0 = $t2
   PrintIntS( $v0)
 
-  $v0 = local[0]
+  $v0 = $t1
   PrintIntS( $v0)
 
-  $v0 = local[6]
+  $v0 = $s0
   $v0 = [$v0+0]
-  local[7] = $v0
+  $t8 = $v0
 
-  $v0 = local[7]
+  $v0 = $t8
   $v0 = [$v0+4]
-  local[7] = $v0
+  $t8 = $v0
 
+  local[1] = $t5
+  local[2] = $t4
+  local[3] = $t7
+  local[4] = $t6
+  local[5] = $t1
+  local[6] = $t3
+  local[7] = $t2
+  local[8] = $t8
 
-  $v0 = local[6]
+  $v0 = $s0
   $a0 = $v0
-  $v0 = local[0]
+  $v0 = $t1
   $a1 = $v0
-  $v0 = local[1]
+  $v0 = $t2
   $a2 = $v0
-  $v0 = local[2]
+  $v0 = $t3
   $a3 = $v0
-  $v0 = local[3]
+  $v0 = $t4
   out[0] = $v0
-  $v0 = local[4]
+  $v0 = $t5
   out[1] = $v0
-  $v0 = local[5]
+  $v0 = $t6
   out[2] = $v0
 
-  $v0 = local[7]
+  $v0 = $t8
   call $v0
 
+  $t5 = local[1]
+  $t4 = local[2]
+  $t7 = local[3]
+  $t6 = local[4]
+  $t1 = local[5]
+  $t3 = local[6]
+  $t2 = local[7]
+  $t8 = local[8]
 
-  local[8] = $v0
-  $v0 = local[8]
+  $t7 = $v0
+  $v0 = $t7
 
+  $s0 = local[0]
   ret
 func MT4.Change [in 7 , out 7 , local 6]
 
 
   $t0 = $a0
-  local[5] = $a1
-  local[4] = $a2
-  local[3] = $a3
+  $t6 = $a1
+  $t5 = $a2
+  $t4 = $a3
   $v0 = in[ 0 ]
-  local[2] = $v0
+  $t3 = $v0
   $v0 = in[ 1 ]
-  local[1] = $v0
+  $t2 = $v0
   $v0 = in[ 2 ]
-  local[0] = $v0
+  $t1 = $v0
 
-  $v0 = local[5]
+  $v0 = $t6
   PrintIntS( $v0)
 
-  $v0 = local[4]
+  $v0 = $t5
   PrintIntS( $v0)
 
-  $v0 = local[3]
+  $v0 = $t4
   PrintIntS( $v0)
 
-  $v0 = local[2]
+  $v0 = $t3
   PrintIntS( $v0)
 
-  $v0 = local[1]
+  $v0 = $t2
   PrintIntS( $v0)
 
-  $v0 = local[0]
+  $v0 = $t1
   PrintIntS( $v0)
   $v0 = 0
 

@@ -4,13 +4,12 @@ func Main [in 0 , out 0 , local 2]
 
 
 
-  local[1] = 4
+  $t2 = 4
 
-  $v0 = local[1]
-  $t0 = Add( $v0 2)
-  local[0] = $t0
+  $v0 = $t2
+  $t1 = Add( $v0 2)
 
-  $v0 = local[0]
+  $v0 = $t1
   PrintIntS( $v0)
 
 

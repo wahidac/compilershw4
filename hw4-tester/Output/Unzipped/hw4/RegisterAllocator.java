@@ -43,9 +43,9 @@ public class RegisterAllocator {
 		  	spilledVariables = new HashMap<String, ArrayList<String>>();
 		  	registerAssignments = new HashMap<String,HashMap<String,String>>();
 
-		  	calleeSaved = new String[0];
+		  	calleeSaved = new String[8];
 			//Reserve register $t1 to use for spilling 
-			callerSaved = new String[0];
+			callerSaved = new String[8];
 			
 			String prefix = "$s";
 			for(int i = 0; i < calleeSaved.length; i++) {
